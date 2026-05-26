@@ -7,6 +7,7 @@ ifeq ($(OS),Windows_NT)
   LDFLAGS       =
   LDLIBS        = "$(WASMER_ROOT)/lib/wasmer.dll.lib"
   TARGET        = main.exe
+  TEST_TARGET   = test_sum.exe
   WAT2WASM_TOOL = wat2wasm_tool.exe
   RM            = rm -f
 else
@@ -14,6 +15,7 @@ else
   LDFLAGS       = -Wl,-rpath,$(shell $(WASMER_DIR)/bin/wasmer config --libdir)
   LDLIBS        = $(shell $(WASMER_DIR)/bin/wasmer config --libs)
   TARGET        = a.out
+  TEST_TARGET   = test_sum
   WAT2WASM_TOOL = wat2wasm_tool
   RM            = rm -f
 endif
@@ -24,13 +26,26 @@ ifeq ($(OS),Windows_NT)
 	cp "$(WASMER_ROOT)/lib/wasmer.dll" .
 endif
 
+$(TEST_TARGET): test_sum.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o $@ $^
+ifeq ($(OS),Windows_NT)
+	cp "$(WASMER_ROOT)/lib/wasmer.dll" .
+endif
+
 add.wasm: add.wat $(WAT2WASM_TOOL)
 	./$(WAT2WASM_TOOL) add.wat add.wasm
 
 $(WAT2WASM_TOOL): wat2wasm_tool.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o $@ $^
+ifeq ($(OS),Windows_NT)
+	cp "$(WASMER_ROOT)/lib/wasmer.dll" .
+endif
+
+.PHONY: test
+test: $(TEST_TARGET) add.wasm
+	./$(TEST_TARGET)
 
 .PHONY: clean
 .SILENT: clean
 clean:
-	$(RM) $(TARGET) $(WAT2WASM_TOOL) add.wasm *.cwasm
+	$(RM) $(TARGET) $(TEST_TARGET) $(WAT2WASM_TOOL) add.wasm *.cwasm
