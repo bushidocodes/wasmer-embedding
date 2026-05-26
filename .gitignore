@@ -8,6 +8,9 @@ add.wasm
 *.cwasm
 wasmer.dll
 
+# Editor
+.vscode/
+
 # MSVC build artifacts
 *.exp
 *.ilk
