@@ -49,13 +49,9 @@ The build produces `main.exe` and copies `wasmer.dll` into the project directory
 ### Building a specific example
 
 ```bash
-# Linux
-clang -g -I$(wasmer config --includedir) -Wl,-rpath,$(wasmer config --libdir) \
-  $(wasmer config --libs) -o main_embed main_embed.c
-
-# Windows
-clang -g "-IC:/Program Files (x86)/Wasmer/include" -D_CRT_SECURE_NO_WARNINGS \
-  "C:/Program Files (x86)/Wasmer/lib/wasmer.dll.lib" -o main_embed.exe main_embed.c
+make main_embed        # builds main_embed   (Linux) / main_embed.exe   (Windows)
+make main_wat_external # builds main_wat_external (Linux) / main_wat_external.exe (Windows)
+make all               # builds all three examples
 ```
 
 ## Running
