@@ -7,6 +7,11 @@ int main(int argc, const char *argv[])
     size_t wat_string_len = 0;
 
     FILE *fp = fopen("add.wat", "r");
+    if (fp == NULL)
+    {
+        printf("> Error: could not open add.wat\n");
+        return 1;
+    }
     size_t nread = 0;
 
     while ((nread = fread(&wat_string[wat_string_len], sizeof(char), BUFSIZ - wat_string_len, fp)) != 0)
