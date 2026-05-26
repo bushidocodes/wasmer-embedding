@@ -71,7 +71,7 @@ int main(int argc, const char *argv[])
 
     if (!module)
     {
-        printf("> Error compiling module!\n");
+        fprintf(stderr, "> Error compiling module!\n");
         return 1;
     }
 
@@ -83,7 +83,7 @@ int main(int argc, const char *argv[])
 
     if (!instance)
     {
-        printf("> Error instantiating module!\n");
+        fprintf(stderr, "> Error instantiating module!\n");
         return 1;
     }
 
@@ -93,7 +93,7 @@ int main(int argc, const char *argv[])
 
     if (exports.size == 0)
     {
-        printf("> Error accessing exports!\n");
+        fprintf(stderr, "> Error accessing exports!\n");
         return 1;
     }
 
@@ -102,7 +102,7 @@ int main(int argc, const char *argv[])
 
     if (sum_func == NULL)
     {
-        printf("> Failed to get the `sum` function!\n");
+        fprintf(stderr, "> Failed to get the `sum` function!\n");
         return 1;
     }
 
@@ -114,7 +114,7 @@ int main(int argc, const char *argv[])
 
     if (wasm_func_call(sum_func, &args, &results))
     {
-        printf("> Error calling the `sum` function!\n");
+        fprintf(stderr, "> Error calling the `sum` function!\n");
 
         return 1;
     }
