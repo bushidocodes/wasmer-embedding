@@ -17,6 +17,8 @@ int main(int argc, const char *argv[])
     while ((nread = fread(&wat_string[wat_string_len], sizeof(char), BUFSIZ - wat_string_len, fp)) != 0)
         wat_string_len += nread;
 
+    fclose(fp);
+
     wasm_byte_vec_t wat;
     wasm_byte_vec_new(&wat, strlen(wat_string), wat_string);
     wasm_byte_vec_t wasm_bytes;
