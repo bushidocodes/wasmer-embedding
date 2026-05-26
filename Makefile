@@ -1,8 +1,14 @@
 CC = clang
 
 ifeq ($(OS),Windows_NT)
-  _PF86           := $(shell printenv 'ProgramFiles(x86)' 2>/dev/null | tr -d '\r' | sed 's|\\\\|/|g')
-  WASMER_ROOT     := $(_PF86)/Wasmer
+  ifdef WASMER_DIR
+    # Explicit override — e.g. script-based install: iwr https://win.wasmer.io | iex
+    WASMER_ROOT   := $(subst \,/,$(WASMER_DIR))
+  else
+    # Default: winget install location (winget install Wasmer.Wasmer)
+    _PF86         := $(shell printenv 'ProgramFiles(x86)' 2>/dev/null | tr -d '\r' | sed 's|\\\\|/|g')
+    WASMER_ROOT   := $(_PF86)/Wasmer
+  endif
   CFLAGS           = -g -D_CRT_SECURE_NO_WARNINGS "-I$(WASMER_ROOT)/include"
   LDFLAGS          =
   LDLIBS           = "$(WASMER_ROOT)/lib/wasmer.dll.lib"

@@ -8,19 +8,58 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install clang
+      # ── Linux ──────────────────────────────────────────────────────────────
+      - name: Install clang (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get install -y clang
 
-      - name: Install Wasmer
+      # ── macOS ──────────────────────────────────────────────────────────────
+      # macOS ships BSD make; GNU make is required for $(shell ...) support.
+      # Apple Clang is already present via Xcode Command Line Tools.
+      - name: Install GNU make (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install make
+          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
+
+      # ── Windows ────────────────────────────────────────────────────────────
+      # Install GNU make and LLVM/clang via Chocolatey.
+      - name: Install make and clang (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install make llvm --yes --no-progress
+
+      # ── Wasmer: Linux / macOS ──────────────────────────────────────────────
+      - name: Install Wasmer (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
           curl https://get.wasmer.io -sSfL | sh
           echo "$HOME/.wasmer/bin" >> $GITHUB_PATH
           echo "WASMER_DIR=$HOME/.wasmer" >> $GITHUB_ENV
 
+      # ── Wasmer: Windows ────────────────────────────────────────────────────
+      # Download the Inno Setup installer and run it silently.
+      # Installs to C:\Program Files (x86)\Wasmer — the location the Makefile
+      # auto-detects via the ProgramFiles(x86) environment variable.
+      - name: Install Wasmer (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = "$env:TEMP\wasmer-installer.exe"
+          Invoke-WebRequest -Uri "https://github.com/wasmerio/wasmer/releases/latest/download/wasmer-windows.exe" `
+            -OutFile $installer
+          Start-Process -Wait $installer -ArgumentList "/SILENT"
+
+      # ── Build and test (all platforms) ────────────────────────────────────
       - name: Build and run tests
+        shell: bash
         run: make test
