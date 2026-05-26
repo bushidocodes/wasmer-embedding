@@ -1,0 +1,12 @@
+a.out
+main.exe
+main_embed.exe
+main_wat_external.exe
+*.cwasm
+wasmer.dll
+
+# MSVC build artifacts
+*.exp
+*.ilk
+*.lib
+*.pdb
