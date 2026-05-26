@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
     _PF86         := $(shell printenv 'ProgramFiles(x86)' 2>/dev/null | tr -d '\r' | sed 's|\\\\|/|g')
     WASMER_ROOT   := $(_PF86)/Wasmer
   endif
-  CFLAGS           = -g -D_CRT_SECURE_NO_WARNINGS "-I$(WASMER_ROOT)/include"
+  CFLAGS           = -g -D_CRT_SECURE_NO_WARNINGS -Wno-inconsistent-dllimport "-I$(WASMER_ROOT)/include"
   LDFLAGS          =
   LDLIBS           = "$(WASMER_ROOT)/lib/wasmer.dll.lib"
   TARGET           = main.exe
