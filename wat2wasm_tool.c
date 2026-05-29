@@ -19,8 +19,25 @@ int main(int argc, char *argv[])
     long size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    char *buf = malloc(size);
-    fread(buf, 1, size, fp);
+    if (size < 0) {
+        fprintf(stderr, "ftell failed on %s\n", argv[1]);
+        fclose(fp);
+        return 1;
+    }
+
+    char *buf = malloc((size_t)size);
+    if (!buf) {
+        fprintf(stderr, "malloc failed\n");
+        fclose(fp);
+        return 1;
+    }
+
+    if (fread(buf, 1, (size_t)size, fp) != (size_t)size) {
+        fprintf(stderr, "fread failed on %s\n", argv[1]);
+        free(buf);
+        fclose(fp);
+        return 1;
+    }
     fclose(fp);
 
     wasm_byte_vec_t wat, wasm;
