@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "wasmer.h"
 
 int main(int argc, const char *argv[])
@@ -20,7 +21,7 @@ int main(int argc, const char *argv[])
     fclose(fp);
 
     wasm_byte_vec_t wat;
-    wasm_byte_vec_new(&wat, strlen(wat_string), wat_string);
+    wasm_byte_vec_new(&wat, wat_string_len, wat_string);
     wasm_byte_vec_t wasm_bytes;
     wat2wasm(&wat, &wasm_bytes);
     wasm_byte_vec_delete(&wat);
