@@ -44,17 +44,23 @@ int main(int argc, const char *argv[])
         wasm_module_serialize(module, &serialized_module);
 
         fp = fopen("add.cwasm", "wb");
-
-        size_t serialized_module_cursor = 0;
-
-        while (serialized_module_cursor < serialized_module.size)
+        if (fp == NULL)
         {
-            size_t nwritten = fwrite(&serialized_module.data[serialized_module_cursor], sizeof(char), serialized_module.size - serialized_module_cursor, fp);
-            serialized_module_cursor += nwritten;
+            fprintf(stderr, "Warning: could not create add.cwasm, skipping cache write\n");
         }
+        else
+        {
+            size_t serialized_module_cursor = 0;
 
-        fflush(fp);
-        fclose(fp);
+            while (serialized_module_cursor < serialized_module.size)
+            {
+                size_t nwritten = fwrite(&serialized_module.data[serialized_module_cursor], sizeof(char), serialized_module.size - serialized_module_cursor, fp);
+                serialized_module_cursor += nwritten;
+            }
+
+            fflush(fp);
+            fclose(fp);
+        }
     }
     else
     {
