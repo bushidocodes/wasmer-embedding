@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include "wasmer.h"
 
 int main(int argc, const char *argv[])
