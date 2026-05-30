@@ -1,26 +1,39 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "wasmer.h"
 
 int main(int argc, const char *argv[])
 {
-    char wat_string[BUFSIZ];
-    size_t wat_string_len = 0;
-
     FILE *fp = fopen("add.wat", "r");
     if (fp == NULL)
     {
         fprintf(stderr, "> Error: could not open add.wat\n");
         return 1;
     }
-    size_t nread = 0;
 
-    while ((nread = fread(&wat_string[wat_string_len], sizeof(char), BUFSIZ - wat_string_len, fp)) != 0)
-        wat_string_len += nread;
+    fseek(fp, 0, SEEK_END);
+    long wat_file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    if (wat_file_size < 0)
+    {
+        fprintf(stderr, "> Error: ftell failed on add.wat\n");
+        fclose(fp);
+        return 1;
+    }
 
+    char *wat_string = malloc((size_t)wat_file_size);
+    if (!wat_string)
+    {
+        fprintf(stderr, "> Error: out of memory\n");
+        fclose(fp);
+        return 1;
+    }
+    size_t wat_string_len = fread(wat_string, sizeof(char), (size_t)wat_file_size, fp);
     fclose(fp);
 
     wasm_byte_vec_t wat;
     wasm_byte_vec_new(&wat, wat_string_len, wat_string);
+    free(wat_string);
     wasm_byte_vec_t wasm_bytes;
     wat2wasm(&wat, &wasm_bytes);
     wasm_byte_vec_delete(&wat);

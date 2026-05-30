@@ -8,9 +8,6 @@ int main(int argc, const char *argv[])
     wasm_engine_t *engine = wasm_engine_new();
     wasm_store_t *store = wasm_store_new(engine);
 
-    wasm_byte_t buf[BUFSIZ];
-    size_t buf_len = 0;
-
     wasm_module_t *module = NULL;
 
     // Try to open add.cwasm
@@ -24,13 +21,29 @@ int main(int argc, const char *argv[])
         {
             exit(EXIT_FAILURE);
         }
-        size_t nread = 0;
 
-        while ((nread = fread(&buf[buf_len], sizeof(wasm_byte_t), BUFSIZ - buf_len, fp)) != 0)
-            buf_len += nread;
+        fseek(fp, 0, SEEK_END);
+        long wasm_file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        if (wasm_file_size < 0)
+        {
+            fprintf(stderr, "> Error: ftell failed on add.wasm\n");
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
+
+        wasm_byte_t *buf = malloc((size_t)wasm_file_size);
+        if (!buf)
+        {
+            fprintf(stderr, "> Error: out of memory\n");
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
+        size_t buf_len = fread(buf, sizeof(wasm_byte_t), (size_t)wasm_file_size, fp);
 
         wasm_byte_vec_t wasm_bytes;
         wasm_byte_vec_new(&wasm_bytes, buf_len, buf);
+        free(buf);
 
         printf("Compiling module...\n");
         module = wasm_module_new(store, &wasm_bytes);
@@ -64,15 +77,32 @@ int main(int argc, const char *argv[])
     }
     else
     {
-        size_t nread = 0;
+        fseek(fp, 0, SEEK_END);
+        long cwasm_file_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        if (cwasm_file_size < 0)
+        {
+            fprintf(stderr, "> Error: ftell failed on add.cwasm\n");
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
 
-        while ((nread = fread(&buf[buf_len], sizeof(wasm_byte_t), BUFSIZ - buf_len, fp)) != 0)
-            buf_len += nread;
+        wasm_byte_t *buf = malloc((size_t)cwasm_file_size);
+        if (!buf)
+        {
+            fprintf(stderr, "> Error: out of memory\n");
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
+        size_t buf_len = fread(buf, sizeof(wasm_byte_t), (size_t)cwasm_file_size, fp);
+        fclose(fp);
 
         wasm_byte_vec_t cwasm_bytes;
         wasm_byte_vec_new(&cwasm_bytes, buf_len, buf);
+        free(buf);
 
         module = wasm_module_deserialize(store, &cwasm_bytes);
+        wasm_byte_vec_delete(&cwasm_bytes);
     }
 
     if (!module)
