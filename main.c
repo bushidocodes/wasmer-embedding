@@ -19,6 +19,7 @@ int main(int argc, const char *argv[])
         fp = fopen("add.wasm", "rb");
         if (fp == NULL)
         {
+            fprintf(stderr, "> Error: could not open add.wasm\n");
             exit(EXIT_FAILURE);
         }
 
