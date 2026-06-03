@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "wasmer.h"
 
 static int tests_run    = 0;
@@ -31,15 +32,21 @@ int main(void)
     FILE *fp = fopen("add.wasm", "rb");
     if (!fp) { fprintf(stderr, "cannot open add.wasm\n"); return 1; }
 
-    char buf[BUFSIZ];
-    size_t len = 0, n;
-    while ((n = fread(buf + len, 1, sizeof(buf) - len, fp)) > 0) len += n;
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    if (file_size <= 0) { fprintf(stderr, "bad file size\n"); fclose(fp); return 1; }
+
+    wasm_byte_t *buf = malloc((size_t)file_size);
+    if (!buf) { fprintf(stderr, "out of memory\n"); fclose(fp); return 1; }
+    size_t len = fread(buf, 1, (size_t)file_size, fp);
     fclose(fp);
 
     wasm_engine_t   *engine   = wasm_engine_new();
     wasm_store_t    *store    = wasm_store_new(engine);
     wasm_byte_vec_t  bytes;
     wasm_byte_vec_new(&bytes, len, buf);
+    free(buf);
     wasm_module_t   *module   = wasm_module_new(store, &bytes);
     wasm_byte_vec_delete(&bytes);
 
