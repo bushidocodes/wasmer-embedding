@@ -1,6 +1,8 @@
 a.out
 main.exe
+main_embed
 main_embed.exe
+main_wat_external
 main_wat_external.exe
 wat2wasm_tool
 wat2wasm_tool.exe
