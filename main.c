@@ -69,6 +69,10 @@ int main(int argc, const char *argv[])
             while (serialized_module_cursor < serialized_module.size)
             {
                 size_t nwritten = fwrite(&serialized_module.data[serialized_module_cursor], sizeof(char), serialized_module.size - serialized_module_cursor, fp);
+                if (nwritten == 0) {
+                    fprintf(stderr, "Warning: fwrite failed, cwasm cache may be corrupt\n");
+                    break;
+                }
                 serialized_module_cursor += nwritten;
             }
 
