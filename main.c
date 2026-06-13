@@ -8,7 +8,10 @@ int main(int argc, const char *argv[])
     wasm_engine_t *engine = wasm_engine_new();
     wasm_store_t *store = wasm_store_new(engine);
 
+    int rc = 0;
     wasm_module_t *module = NULL;
+    wasm_instance_t *instance = NULL;
+    wasm_extern_vec_t exports = WASM_EMPTY_VEC;
 
     // Try to open add.cwasm
     FILE *fp = fopen("add.cwasm", "rb");
@@ -20,7 +23,8 @@ int main(int argc, const char *argv[])
         if (fp == NULL)
         {
             fprintf(stderr, "> Error: could not open add.wasm\n");
-            exit(EXIT_FAILURE);
+            rc = 1;
+            goto cleanup;
         }
 
         fseek(fp, 0, SEEK_END);
@@ -30,7 +34,8 @@ int main(int argc, const char *argv[])
         {
             fprintf(stderr, "> Error: ftell failed on add.wasm\n");
             fclose(fp);
-            exit(EXIT_FAILURE);
+            rc = 1;
+            goto cleanup;
         }
 
         wasm_byte_t *buf = malloc((size_t)wasm_file_size);
@@ -38,7 +43,8 @@ int main(int argc, const char *argv[])
         {
             fprintf(stderr, "> Error: out of memory\n");
             fclose(fp);
-            exit(EXIT_FAILURE);
+            rc = 1;
+            goto cleanup;
         }
         size_t buf_len = fread(buf, sizeof(wasm_byte_t), (size_t)wasm_file_size, fp);
 
@@ -91,7 +97,8 @@ int main(int argc, const char *argv[])
         {
             fprintf(stderr, "> Error: ftell failed on add.cwasm\n");
             fclose(fp);
-            exit(EXIT_FAILURE);
+            rc = 1;
+            goto cleanup;
         }
 
         wasm_byte_t *buf = malloc((size_t)cwasm_file_size);
@@ -99,7 +106,8 @@ int main(int argc, const char *argv[])
         {
             fprintf(stderr, "> Error: out of memory\n");
             fclose(fp);
-            exit(EXIT_FAILURE);
+            rc = 1;
+            goto cleanup;
         }
         size_t buf_len = fread(buf, sizeof(wasm_byte_t), (size_t)cwasm_file_size, fp);
         fclose(fp);
@@ -115,29 +123,31 @@ int main(int argc, const char *argv[])
     if (!module)
     {
         fprintf(stderr, "> Error compiling module!\n");
-        return 1;
+        rc = 1;
+        goto cleanup;
     }
 
     printf("Creating imports...\n");
     wasm_extern_vec_t import_object = WASM_EMPTY_VEC;
 
     printf("Instantiating module...\n");
-    wasm_instance_t *instance = wasm_instance_new(store, module, &import_object, NULL);
+    instance = wasm_instance_new(store, module, &import_object, NULL);
 
     if (!instance)
     {
         fprintf(stderr, "> Error instantiating module!\n");
-        return 1;
+        rc = 1;
+        goto cleanup;
     }
 
     printf("Retrieving exports...\n");
-    wasm_extern_vec_t exports;
     wasm_instance_exports(instance, &exports);
 
     if (exports.size == 0)
     {
         fprintf(stderr, "> Error accessing exports!\n");
-        return 1;
+        rc = 1;
+        goto cleanup;
     }
 
     printf("Retrieving the `sum` function...\n");
@@ -146,7 +156,8 @@ int main(int argc, const char *argv[])
     if (sum_func == NULL)
     {
         fprintf(stderr, "> Failed to get the `sum` function!\n");
-        return 1;
+        rc = 1;
+        goto cleanup;
     }
 
     printf("Calling `sum` function...\n");
@@ -158,15 +169,19 @@ int main(int argc, const char *argv[])
     if (wasm_func_call(sum_func, &args, &results))
     {
         fprintf(stderr, "> Error calling the `sum` function!\n");
-
-        return 1;
+        rc = 1;
+        goto cleanup;
     }
 
     printf("Results of `sum`: %d\n", results_val[0].of.i32);
 
-    wasm_module_delete(module);
+cleanup:
     wasm_extern_vec_delete(&exports);
-    wasm_instance_delete(instance);
+    if (instance)
+        wasm_instance_delete(instance);
+    if (module)
+        wasm_module_delete(module);
     wasm_store_delete(store);
     wasm_engine_delete(engine);
+    return rc;
 }
