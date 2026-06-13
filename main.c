@@ -79,6 +79,8 @@ int main(int argc, const char *argv[])
             fflush(fp);
             fclose(fp);
         }
+
+        wasm_byte_vec_delete(&serialized_module);
     }
     else
     {
