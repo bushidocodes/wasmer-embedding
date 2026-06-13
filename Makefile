@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
     _PF86         := $(shell printenv 'ProgramFiles(x86)' 2>/dev/null | tr -d '\r' | sed 's|\\\\|/|g')
     WASMER_ROOT   := $(_PF86)/Wasmer
   endif
-  CFLAGS           = -g -D_CRT_SECURE_NO_WARNINGS -Wno-inconsistent-dllimport "-I$(WASMER_ROOT)/include"
+  CFLAGS           = -g -Wall -Wextra -D_CRT_SECURE_NO_WARNINGS -Wno-inconsistent-dllimport "-I$(WASMER_ROOT)/include"
   LDFLAGS          =
   LDLIBS           = "$(WASMER_ROOT)/lib/wasmer.dll.lib"
   TARGET           = main.exe
@@ -19,7 +19,7 @@ ifeq ($(OS),Windows_NT)
   WAT2WASM_TOOL    = wat2wasm_tool.exe
   RM               = rm -f
 else
-  CFLAGS           = -g -I$(shell $(WASMER_DIR)/bin/wasmer config --includedir)
+  CFLAGS           = -g -Wall -Wextra -I$(shell $(WASMER_DIR)/bin/wasmer config --includedir)
   LDFLAGS          = -Wl,-rpath,$(shell $(WASMER_DIR)/bin/wasmer config --libdir)
   LDLIBS           = $(shell $(WASMER_DIR)/bin/wasmer config --libs)
   TARGET           = a.out
